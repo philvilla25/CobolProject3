@@ -1,0 +1,68 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SEQUENTIAL-TO-INDEXED.
+        *> This program converts a sequential portfolio file to an indexed portfolio file.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           *> Define the input portfolio file as a line sequential file.
+           SELECT INPUT-PORTFOLIO
+           ASSIGN TO '..\PORTFOLIO.txt'
+           ORGANIZATION IS LINE SEQUENTIAL.
+
+           *> Define the output portfolio file as an indexed file with sequential access.
+           SELECT OUTPUT-PORTFOLIO
+           ASSIGN TO '..\PORTFOLIO.dat'
+           ORGANIZATION IS INDEXED
+           ACCESS MODE IS SEQUENTIAL
+           RECORD KEY IS STOCK-SYMBOL.
+
+       DATA DIVISION.
+       FILE SECTION.
+
+       *> Define the structure of the input portfolio file.
+       FD INPUT-PORTFOLIO.
+       01 READ-PORTFOLIO.
+           02 SSYMBOL PIC X(7).
+           02 NSHARES PIC 9(5).
+           02 ACOST PIC 9(4)V99.
+
+       *> Define the structure of the output portfolio file.
+       FD OUTPUT-PORTFOLIO.
+       01 PORTFOLIO-RECORD.
+           02 STOCK-SYMBOL PIC X(7).
+           02 NUMBER-OF-SHARES PIC 9(5).
+           02 AVERAGE-COST PIC 9(4)V99.
+
+       WORKING-STORAGE SECTION.
+        *> Define a variable to track the end of the input file.
+       01 EOF PIC A.
+
+       PROCEDURE DIVISION.
+       MAIN-PROCEDURE.
+           *> Main procedure to open files, write records to the indexed file, and close files.
+           PERFORM OPEN-FILES.
+           PERFORM WRITE-INDEXED-FILE UNTIL EOF = 'Y'.
+           PERFORM CLOSE-FILES.
+           STOP RUN.
+
+       OPEN-FILES.
+           *> Open the input and output portfolio files.
+           OPEN INPUT INPUT-PORTFOLIO.
+           OPEN OUTPUT OUTPUT-PORTFOLIO.
+
+       WRITE-INDEXED-FILE.
+            *> Read records from the input file and write them to the indexed output file.
+           READ INPUT-PORTFOLIO
+               AT END MOVE 'Y' TO EOF
+               NOT AT END
+                   MOVE SSYMBOL TO STOCK-SYMBOL
+                   MOVE NSHARES TO NUMBER-OF-SHARES
+                   MOVE ACOST TO AVERAGE-COST
+                   WRITE PORTFOLIO-RECORD
+           END-READ.
+
+       CLOSE-FILES.
+           *> Close the input and output portfolio files.
+           CLOSE INPUT-PORTFOLIO OUTPUT-PORTFOLIO.
+       END PROGRAM SEQUENTIAL-TO-INDEXED.
